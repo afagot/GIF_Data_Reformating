@@ -8,7 +8,7 @@
 
 To compile the project, simply use
 
-   make
+    make
 
 ###Usage
 
@@ -20,8 +20,8 @@ From scan 001002 to scan 001141, all the data (TDC + CAEN + DIP) was saved into 
 
 To use it (even if it only is meant to be used once), call:
 
-   ./run.sh first_Scan last_Scan
+    ./run.sh first_Scan last_Scan
 
 In our case, we need to use it on all Scans between scan 1002 and 1141, thus:
 
-   ./run.sh 1002 1141
+    ./run.sh 1002 1141
