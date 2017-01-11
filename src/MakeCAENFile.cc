@@ -13,13 +13,15 @@ void MakeCAENFile(string fName, vector<string> GapList){
 		TFile* output = new TFile(outputName.c_str(),"RECREATE");
 
 		for(unsigned int g = 0; g<GapList.size(); g++){
-			string HVeffHisto = "HVeff-" + GapList[g];
+                    string HVeffHisto = "HVeff-" + GapList[g];
+                    string newNameFormat = "HVeff_" + GapList[g];
 
-			if(input.GetListOfKeys()->Contains(HVeffHisto.c_str())){
-				TH1F* HVeff = (TH1F*)input.Get(HVeffHisto.c_str());
+                    if(input.GetListOfKeys()->Contains(HVeffHisto.c_str())){
+                            TH1F* HVeff = (TH1F*)input.Get(HVeffHisto.c_str());
+                            HVeff->SetName(newNameFormat.c_str());
 
-				HVeff->Write();
-			}
+                            HVeff->Write();
+                    }
 		}
 
 		output->Close();
