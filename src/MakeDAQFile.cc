@@ -9,29 +9,36 @@
 using namespace std;
 
 void MakeDAQFile(string fName){
-	if(existFile(fName)){
-		TFile* input = new TFile(fName.c_str(),"READ");
+    if(existFile(fName)){
+        TFile* input = new TFile(fName.c_str(),"READ");
 
-		TTree* RAWDataTree = (TTree*)input->Get("RAWData");
-		TTree* RunParameters = (TTree*)input->Get("RunParameters");
+        TTree* RAWDataTree = (TTree*)input->Get("RAWData");
+        TTree* RunParameters = (TTree*)input->Get("RunParameters");
 
-		string outputName = getFileName(fName,"DAQ");
-		TFile* output = new TFile(outputName.c_str(),"RECREATE");
+        // Deactivate all branches
+        RAWDataTree->SetBranchStatus("*",0);
 
-		TTree* newRAWDataTree = RAWDataTree->CloneTree();
-		TTree* newRunParameters = RunParameters->CloneTree();
+        // Activate all the branches exept the QFlag one
+        RAWDataTree->SetBranchStatus("EventNumber*",1);
+        RAWDataTree->SetBranchStatus("number_of_hits*",1);
+        RAWDataTree->SetBranchStatus("TDC_channel*",1);
+        RAWDataTree->SetBranchStatus("TDC_TimeStamp*",1);
 
-		TH1D* ID = (TH1D*)input->Get("ID");
-		TH1I* Triggers = (TH1I*)input->Get("Triggers");
-		TH1I* Thrs = (TH1I*)input->Get("Thrs");
+        TFile* output = new TFile(fName.c_str(),"RECREATE");
 
-		newRAWDataTree->Write();
-		newRunParameters->Write();
-		ID->Write();
-		Triggers->Write();
-		Thrs->Write();
+        TTree* newRAWDataTree = RAWDataTree->CloneTree();
+        TTree* newRunParameters = RunParameters->CloneTree();
+        TH1D* ID = (TH1D*)input->Get("ID");
+        TH1I* Triggers = (TH1I*)input->Get("Triggers");
+        TH1I* Thrs = (TH1I*)input->Get("Thrs");
 
-		output->Close();
-		input->Close();
-	}
+        newRAWDataTree->Write();
+        newRunParameters->Write();
+        ID->Write();
+        Triggers->Write();
+        Thrs->Write();
+        output->Close();
+
+        input->Close();
+    }
 }

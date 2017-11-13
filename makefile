@@ -19,12 +19,10 @@ CFLAGS = -ggdb -fPIC -DLINUX -Wall -funsigned-char \
 
 all: $(BIN_DIR) $(OBJ_DIR) reformatting
 
-reformatting: 		main.o MakeDAQFile.o MakeCAENFile.o MakeDIPFile.o utils.o
+reformatting: 		main.o MakeDAQFile.o utils.o
 					g++ $(CFLAGS) $(OBJ_DIR)/main.o \
 					$(OBJ_DIR)/utils.o \
 					$(OBJ_DIR)/MakeDAQFile.o \
-					$(OBJ_DIR)/MakeCAENFile.o \
-					$(OBJ_DIR)/MakeDIPFile.o \
         			-o $(BIN_DIR)/reformatting \
         			$(LFLAGS) \
         		 	-l curses
@@ -35,10 +33,6 @@ utils.o:
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/utils.cc -o $(OBJ_DIR)/utils.o
 MakeDAQFile.o:
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/MakeDAQFile.cc -o $(OBJ_DIR)/MakeDAQFile.o
-MakeCAENFile.o:
-	$(CC) $(CFLAGS) -c $(SRC_DIR)/MakeCAENFile.cc -o $(OBJ_DIR)/MakeCAENFile.o
-MakeDIPFile.o:
-	$(CC) $(CFLAGS) -c $(SRC_DIR)/MakeDIPFile.cc -o $(OBJ_DIR)/MakeDIPFile.o
 
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)/

@@ -14,7 +14,5 @@
 using namespace std;
 
 bool    existFile(string fName);
-string	getFileName(string fName, string type);
-void	getGapList(vector<string>& GapList);
 
 #endif // UTILS_H
