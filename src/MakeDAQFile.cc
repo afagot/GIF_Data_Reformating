@@ -22,8 +22,7 @@ void MakeDAQFile(string fName){
         TTree* newRunParameters = oldRunParameters->CloneTree();
 
         RAWData olddata;
-
-        olddata.TDCCh = new vector<Uint>;
+        olddata.TDCCh = new vector<int>;
         olddata.TDCTS = new vector<float>;
         olddata.TDCCh->clear();
         olddata.TDCTS->clear();
@@ -33,18 +32,17 @@ void MakeDAQFile(string fName){
         oldRAWDataTree->SetBranchAddress("TDC_channel",    &olddata.TDCCh);
         oldRAWDataTree->SetBranchAddress("TDC_TimeStamp",  &olddata.TDCTS);
 
-        string newfName = "test.root";
-        TFile* output = new TFile(newfName.c_str(),"RECREATE");
+        TFile* output = new TFile(fName.c_str(),"RECREATE");
 
         TTree* newRAWDataTree = new TTree("RAWData","RAWData");
 
-        int           EventCount = -9;  //Event tag
-        int           nHits = -8;       //Number of fired TDC channels in event
-        vector<int>   TDCCh;            //List of fired TDC channels in event
-        vector<float> TDCTS;            //list of fired TDC channels time stamps
+        int EventCount;
+        int nHits;
+        vector<int> *TDCCh = new vector<int>;
+        vector<float> *TDCTS = new vector<float>;
 
-        TDCCh.clear();
-        TDCTS.clear();
+        TDCCh->clear();
+        TDCTS->clear();
 
         //Set the branches that will contain the previously defined variables
         newRAWDataTree->Branch("EventNumber",    &EventCount, "EventNumber/I");
@@ -52,40 +50,50 @@ void MakeDAQFile(string fName){
         newRAWDataTree->Branch("TDC_channel",    &TDCCh);
         newRAWDataTree->Branch("TDC_TimeStamp",  &TDCTS);
 
+        vector<int> EventCountList;
+        vector<int> nHitsList;
+        vector< vector<int> *> TDCChList;
+        vector< vector<float> *> TDCTSList;
+
+        EventCountList.clear();
+        nHitsList.clear();
+        TDCChList.clear();
+        TDCTSList.clear();
+
         Uint nEntries = oldRAWDataTree->GetEntries();
-        int lastEvent = -1;
 
         for(Uint i=0; i<nEntries; i++){
             oldRAWDataTree->GetEntry(i);
 
-            cout << olddata.iEvent << " " << lastEvent << endl;
+            if(olddata.iEvent > (int)EventCountList.size()){
+                Uint Difference = olddata.iEvent - (int)EventCountList.size();
+                for(Uint e = 1; e < Difference; e++){
+                    EventCountList.push_back(olddata.iEvent-Difference+e);
+                    nHitsList.push_back(0);
+                    TDCChList.push_back(new vector<int>);
+                    TDCTSList.push_back(new vector<float>);
+                }
 
-            if(lastEvent == -1){
-                EventCount = olddata.iEvent;
-                nHits = olddata.TDCNHits;
-                TDCCh.insert(TDCCh.end(),olddata.TDCCh->begin(),olddata.TDCCh->end());
-                TDCTS.insert(TDCTS.end(),olddata.TDCTS->begin(),olddata.TDCTS->end());
-
-                lastEvent = olddata.iEvent;
-            } else if(olddata.iEvent == lastEvent){
-                EventCount = olddata.iEvent;
-                nHits = nHits + olddata.TDCNHits;
-                TDCCh.insert(TDCCh.end(),olddata.TDCCh->begin(),olddata.TDCCh->end());
-                TDCTS.insert(TDCTS.end(),olddata.TDCTS->begin(),olddata.TDCTS->end());
+                EventCountList.push_back(olddata.iEvent);
+                nHitsList.push_back(olddata.TDCNHits);
+                TDCChList.push_back(olddata.TDCCh);
+                TDCTSList.push_back(olddata.TDCTS);
             } else {
-                newRAWDataTree->Fill();
-
-                EventCount = olddata.iEvent;
-                nHits = olddata.TDCNHits;
-                TDCCh.clear();
-                TDCTS.clear();
-                TDCCh.insert(TDCCh.end(),olddata.TDCCh->begin(),olddata.TDCCh->end());
-                TDCTS.insert(TDCTS.end(),olddata.TDCTS->begin(),olddata.TDCTS->end());
-
-                lastEvent = olddata.iEvent;
+                Uint e = olddata.iEvent - 1;
+                nHitsList.at(e) = nHitsList.at(e) + olddata.TDCNHits;
+                TDCChList.at(e)->insert(TDCChList.at(e)->end(),olddata.TDCCh->begin(),olddata.TDCCh->end());
+                TDCTSList.at(e)->insert(TDCTSList.at(e)->end(),olddata.TDCTS->begin(),olddata.TDCTS->end());
             }
         }
-        newRAWDataTree->Fill();
+
+        for(Uint s = 0; s < EventCountList.size(); s++){
+            EventCount = EventCountList.at(s);
+            nHits = nHitsList.at(s);
+            TDCCh = TDCChList.at(s);
+            TDCTS = TDCTSList.at(s);
+
+            newRAWDataTree->Fill();
+        }
 
         newRAWDataTree->Write();
         newRunParameters->Write();
