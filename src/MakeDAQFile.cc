@@ -62,8 +62,6 @@ void MakeDAQFile(string fName){
             TDCCh = olddata.TDCCh;
             TDCTS = olddata.TDCTS;
 
-            cout << qflag << " -> ";
-
             int nDigits = 4;
 
             int tmpflag = qflag;
@@ -75,8 +73,6 @@ void MakeDAQFile(string fName){
                 tmpflag = tmpflag%(int)pow(10,nDigits-1);
                 nDigits--;
             }
-
-            cout << qflag << endl;
 
             newRAWDataTree->Fill();
         }
