@@ -29,6 +29,7 @@ void MakeDAQFile(string fName){
 
         oldRAWDataTree->SetBranchAddress("EventNumber",    &olddata.iEvent);
         oldRAWDataTree->SetBranchAddress("number_of_hits", &olddata.TDCNHits);
+        oldRAWDataTree->SetBranchAddress("Quality_flag", &olddata.QFlag);
         oldRAWDataTree->SetBranchAddress("TDC_channel",    &olddata.TDCCh);
         oldRAWDataTree->SetBranchAddress("TDC_TimeStamp",  &olddata.TDCTS);
 
@@ -36,8 +37,7 @@ void MakeDAQFile(string fName){
 
         TTree* newRAWDataTree = new TTree("RAWData","RAWData");
 
-        int EventCount;
-        int nHits;
+        int EventCount,nHits,qflag;
         vector<int> *TDCCh = new vector<int>;
         vector<float> *TDCTS = new vector<float>;
 
@@ -47,50 +47,36 @@ void MakeDAQFile(string fName){
         //Set the branches that will contain the previously defined variables
         newRAWDataTree->Branch("EventNumber",    &EventCount, "EventNumber/I");
         newRAWDataTree->Branch("number_of_hits", &nHits,      "number_of_hits/I");
+        newRAWDataTree->Branch("Quality_flag",   &qflag,      "Quality_flag/I");
         newRAWDataTree->Branch("TDC_channel",    &TDCCh);
         newRAWDataTree->Branch("TDC_TimeStamp",  &TDCTS);
-
-        vector<int> EventCountList;
-        vector<int> nHitsList;
-        vector< vector<int> *> TDCChList;
-        vector< vector<float> *> TDCTSList;
-
-        EventCountList.clear();
-        nHitsList.clear();
-        TDCChList.clear();
-        TDCTSList.clear();
 
         Uint nEntries = oldRAWDataTree->GetEntries();
 
         for(Uint i=0; i<nEntries; i++){
             oldRAWDataTree->GetEntry(i);
 
-            if(olddata.iEvent > (int)EventCountList.size()){
-                Uint Difference = olddata.iEvent - (int)EventCountList.size();
-                for(Uint e = 1; e < Difference; e++){
-                    EventCountList.push_back(olddata.iEvent-Difference+e);
-                    nHitsList.push_back(0);
-                    TDCChList.push_back(new vector<int>);
-                    TDCTSList.push_back(new vector<float>);
-                }
+            EventCount = olddata.iEvent;
+            nHits = olddata.TDCNHits;
+            qflag = olddata.QFlag;
+            TDCCh = olddata.TDCCh;
+            TDCTS = olddata.TDCTS;
 
-                EventCountList.push_back(olddata.iEvent);
-                nHitsList.push_back(olddata.TDCNHits);
-                TDCChList.push_back(olddata.TDCCh);
-                TDCTSList.push_back(olddata.TDCTS);
-            } else {
-                Uint e = olddata.iEvent - 1;
-                nHitsList.at(e) = nHitsList.at(e) + olddata.TDCNHits;
-                TDCChList.at(e)->insert(TDCChList.at(e)->end(),olddata.TDCCh->begin(),olddata.TDCCh->end());
-                TDCTSList.at(e)->insert(TDCTSList.at(e)->end(),olddata.TDCTS->begin(),olddata.TDCTS->end());
+            cout << qflag << " -> ";
+
+            int nDigits = 4;
+
+            int tmpflag = qflag;
+            while(nDigits != 0){
+                int tdcflag = tmpflag/(int)pow(10,nDigits-1);
+
+                if(tdcflag == 0) qflag = qflag + 2*(int)pow(10,nDigits-1);
+
+                tmpflag = tmpflag%(int)pow(10,nDigits-1);
+                nDigits--;
             }
-        }
 
-        for(Uint s = 0; s < EventCountList.size(); s++){
-            EventCount = EventCountList.at(s);
-            nHits = nHitsList.at(s);
-            TDCCh = TDCChList.at(s);
-            TDCTS = TDCTSList.at(s);
+            cout << qflag << endl;
 
             newRAWDataTree->Fill();
         }
